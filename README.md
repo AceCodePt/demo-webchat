@@ -18,8 +18,8 @@ This is a realtime chat application built using Next.js for the frontend and Sup
 
 ## Getting Started
 
-1. Clone this repository: `git clone https://github.com/AceCodePt/next-supabase-chat-demo`
-2. Navigate to the project directory: `cd next-supabase-chat-demo`
+1. Clone this repository: `git clone https://github.com/Mego-Program/Chat
+2. Navigate to the project directory: `cd chat`
 3. Install dependencies: `pnpm install`
 4. Set up environment variables:
 
