@@ -19,13 +19,15 @@ export type User = {
   img_url: string | null;
 };
 
-export const MessageContext = createContext<{
-  messages: Row<"public", "message">[];
+export type ChatMessageContextType = {
+  getMessages: () => (Row<"public", "message"> & { user: User })[];
   addMessage: (message: Row<"public", "message">) => void;
-  getProfileOfMessage: (message: Row<"public", "message">) => User;
+  getProfileOfMessage: (message: Row<"public", "message">) => User | undefined;
   userId: string;
-}>({
-  messages: [],
+};
+
+export const ChatMessageContext = createContext<ChatMessageContextType>({
+  getMessages: () => [],
   addMessage: () => {},
   getProfileOfMessage: () => ({ id: "", full_name: "", img_url: "" }),
   userId: "",
@@ -33,40 +35,46 @@ export const MessageContext = createContext<{
 
 export const MessagesContextProvider = (props: {
   children: React.ReactNode;
+  messages: Row<"public", "message">[];
+  users: User[];
   userId: string;
 }) => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [messages, setMessages] = useState<Row<"public", "message">[]>([]);
+  const [users, setUsers] = useState<User[]>(props.users);
+  const [messages, setMessages] = useState<Row<"public", "message">[]>(
+    props.messages
+  );
   const [realtimeChannel, setRealtimeChannel] =
     useState<RealtimeChannel | null>(null);
 
-  useEffect(() => {
-    supabaseClient
-      .from("message")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then(async (messages) => {
-        if (!messages.data) {
-          return;
-        }
-        const uniqueUserIds = [
-          ...new Set(messages.data?.map((x) => x.user_id)),
-        ];
-        const users = await supabaseClient
-          .from("users")
-          .select("*")
-          .in("id", uniqueUserIds);
-        if (users.data) {
-          setUsers(users.data);
-        }
-        setMessages(messages.data);
-      });
-  }, []);
-
   const addMessage = useCallback(
     (newMessage: Row<"public", "message">) => {
+      setMessages((prevMessages) => {
+        const newMessages = [newMessage, ...prevMessages];
+        console.log("adD", newMessages);
+        return newMessages;
+      });
+    },
+    [setMessages]
+  );
+
+  const updateMessage = useCallback(
+    (newMessage: Row<"public", "message">) => {
+      setMessages((prevMessages) => {
+        const messageIndex = prevMessages.findIndex(
+          (m) => m.id === newMessage.id
+        );
+        return prevMessages.with(messageIndex, newMessage);
+      });
+    },
+    [setMessages]
+  );
+
+  const deleteMessage = useCallback(
+    (deletedMessageId?: number) => {
       setMessages((messages) => {
-        const newMessages = [newMessage, ...messages];
+        const newMessages = messages.filter((message) => {
+          return message.id !== deletedMessageId;
+        });
         return newMessages;
       });
     },
@@ -75,32 +83,19 @@ export const MessagesContextProvider = (props: {
 
   const handleMessagePayload = useCallback(
     (payload: RealtimePostgresChangesPayload<Row<"public", "message">>) => {
-      console.log("message payload", payload);
       switch (payload.eventType) {
         case "INSERT":
           addMessage(payload.new);
           break;
         case "UPDATE":
-          setMessages((messages) => {
-            const newMessages = [...messages];
-            const messageIndex = newMessages.findIndex(
-              (m) => m.id === payload.new.id
-            );
-            newMessages[messageIndex] = payload.new;
-            return newMessages;
-          });
+          updateMessage(payload.new);
           break;
         case "DELETE":
-          setMessages((messages) => {
-            const newMessages = messages.filter((message) => {
-              return message.id === payload.old.id;
-            });
-            return newMessages;
-          });
+          deleteMessage(payload.old.id);
           break;
       }
     },
-    [setMessages, addMessage]
+    [addMessage, updateMessage, deleteMessage]
   );
 
   useEffect(() => {
@@ -132,48 +127,60 @@ export const MessagesContextProvider = (props: {
       const userId = message.user_id;
       let user: User | null | undefined = users.find((x) => x.id === userId);
 
-      if (user) {
-        return user;
-      }
-
-      setUsers((users) => {
-        const newUsers = [
-          ...users,
-          { id: userId, img_url: null, full_name: null },
-        ];
-        return newUsers;
-      });
-
-      supabaseClient
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .limit(1)
-        .single()
-        .then((x) => {
-          setUsers((users) => {
-            const newUsers = [...users, x.data!];
-            return newUsers;
-          });
-        });
-
-      return { id: "", full_name: "Unknown User", img_url: "" };
+      return user;
     },
     [users]
   );
 
+  const addUser = useCallback(
+    async (userId: string) => {
+      const { data: user } = await supabaseClient
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .limit(1)
+        .single();
+
+      if (!user || !user.id || !user.full_name || !user.img_url) {
+        return;
+      }
+      setUsers((prevUsers) => {
+        const userIndex = prevUsers.findIndex(
+          (prevUser) => prevUser.id === user.id
+        );
+        if (userIndex >= 0) {
+          return prevUsers.with(userIndex, user);
+        }
+        return [...prevUsers, user];
+      });
+    },
+    [setUsers]
+  );
+
+  const getMessages: ChatMessageContextType["getMessages"] = useCallback(() => {
+    console.log("get messages", messages);
+    return messages.flatMap((message) => {
+      const user = getProfileOfMessage(message);
+      if (!user) {
+        addUser(message.user_id);
+        return [];
+      }
+      return [{ ...message, user }];
+    });
+  }, [messages, addUser, getProfileOfMessage]);
+
   return (
-    <MessageContext.Provider
+    <ChatMessageContext.Provider
       value={{
         addMessage,
-        messages,
+        getMessages,
         getProfileOfMessage,
         userId: props.userId,
       }}
     >
       {props.children}
-    </MessageContext.Provider>
+    </ChatMessageContext.Provider>
   );
 };
 
-export const useMessageProvider = () => useContext(MessageContext);
+export const useChatMessageProvider = () => useContext(ChatMessageContext);

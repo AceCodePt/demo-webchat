@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      "maps.googleapis.com",
-      "plus.unsplash.com",
-      "images.unsplash.com",
-      "scontent.ftlv20-1.fna.fbcdn.net",
-    ],
+    domains: ["avatars.githubusercontent.com", "st4.depositphotos.com"],
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 

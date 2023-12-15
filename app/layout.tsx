@@ -20,10 +20,27 @@ export default async function RootLayout({
 }) {
   const supabase = supabaseServer();
   const user = await supabase.auth.getUser();
+  const messages = await supabaseServer()
+    .from("message")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (!messages.data) {
+    return <>Couldn&apos;t find any messages</>;
+  }
+  const uniqueUserIds = [...new Set(messages.data?.map((x) => x.user_id))];
+  const users = await supabaseServer()
+    .from("users")
+    .select("*")
+    .in("id", uniqueUserIds);
+
+  if (!users.data) {
+    return <>Couldn&apos;t find any users</>;
+  }
+
   return (
-    <html className="h-full w-full" suppressHydrationWarning={true} lang="en">
+    <html className="h-full w-full" lang="en">
       <body
-        suppressHydrationWarning={true}
         className={
           inter.className +
           " flex min-h-full w-full flex-col bg-white dark:bg-gray-900"
@@ -31,7 +48,11 @@ export default async function RootLayout({
         hx-ext="my-ext"
       >
         {user.data.user ? (
-          <MessagesContextProvider userId={user.data.user.id}>
+          <MessagesContextProvider
+            users={users.data}
+            messages={messages.data}
+            userId={user.data.user.id}
+          >
             <>
               {messagePrompt}
               {children}

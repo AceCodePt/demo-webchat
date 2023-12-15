@@ -1,5 +1,5 @@
-import Chat from "./(components)/RealtimeChat";
+import RealtimeChat from "./(components)/RealtimeChat";
 
 export default async function StartPage() {
-  return <Chat />;
+  return <RealtimeChat />;
 }
