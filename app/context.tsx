@@ -63,41 +63,45 @@ export const MessagesContextProvider = (props: {
       });
   }, []);
 
-  const addMessage = useCallback((newMessage: Row<"public", "message">) => {
-    setMessages((messages) => {
-      const newMessages = [newMessage, ...messages];
-      return newMessages;
-    });
-  }, []);
+  const addMessage = useCallback(
+    (newMessage: Row<"public", "message">) => {
+      setMessages((messages) => {
+        const newMessages = [newMessage, ...messages];
+        return newMessages;
+      });
+    },
+    [setMessages]
+  );
 
-  const handleMessagePayload = (
-    payload: RealtimePostgresChangesPayload<Row<"public", "message">>
-  ) => {
-    console.log("message payload", payload);
-    switch (payload.eventType) {
-      case "INSERT":
-        addMessage(payload.new);
-        break;
-      case "UPDATE":
-        setMessages((messages) => {
-          const newMessages = [...messages];
-          const messageIndex = newMessages.findIndex(
-            (m) => m.id === payload.new.id
-          );
-          newMessages[messageIndex] = payload.new;
-          return newMessages;
-        });
-        break;
-      case "DELETE":
-        setMessages((messages) => {
-          const newMessages = messages.filter((message) => {
-            return message.id === payload.old.id;
+  const handleMessagePayload = useCallback(
+    (payload: RealtimePostgresChangesPayload<Row<"public", "message">>) => {
+      console.log("message payload", payload);
+      switch (payload.eventType) {
+        case "INSERT":
+          addMessage(payload.new);
+          break;
+        case "UPDATE":
+          setMessages((messages) => {
+            const newMessages = [...messages];
+            const messageIndex = newMessages.findIndex(
+              (m) => m.id === payload.new.id
+            );
+            newMessages[messageIndex] = payload.new;
+            return newMessages;
           });
-          return newMessages;
-        });
-        break;
-    }
-  };
+          break;
+        case "DELETE":
+          setMessages((messages) => {
+            const newMessages = messages.filter((message) => {
+              return message.id === payload.old.id;
+            });
+            return newMessages;
+          });
+          break;
+      }
+    },
+    [setMessages, addMessage]
+  );
 
   useEffect(() => {
     if (!realtimeChannel) {
