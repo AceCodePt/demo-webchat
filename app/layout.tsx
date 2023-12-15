@@ -19,7 +19,7 @@ export default async function RootLayout({
   messagePrompt: React.ReactNode;
 }) {
   const supabase = supabaseServer();
-  const session = await supabase.auth.getSession();
+  const user = await supabase.auth.getUser();
   return (
     <html className="h-full w-full" suppressHydrationWarning={true} lang="en">
       <body
@@ -30,8 +30,8 @@ export default async function RootLayout({
         }
         hx-ext="my-ext"
       >
-        {session.data.session?.user ? (
-          <MessagesContextProvider userId={session.data.session.user.id}>
+        {user.data.user ? (
+          <MessagesContextProvider userId={user.data.user.id}>
             <>
               {messagePrompt}
               {children}
