@@ -121,7 +121,7 @@ export const MessagesContextProvider = (props: {
     return () => {
       realtimeChannel?.unsubscribe();
     };
-  }, []);
+  }, [handleMessagePayload, realtimeChannel]);
 
   const getProfileOfMessage = useCallback(
     (message: Row<"public", "message">) => {
