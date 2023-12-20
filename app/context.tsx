@@ -50,7 +50,6 @@ export const MessagesContextProvider = (props: {
     (newMessage: Row<"public", "message">) => {
       setMessages((prevMessages) => {
         const newMessages = [newMessage, ...prevMessages];
-        console.log("adD", newMessages);
         return newMessages;
       });
     },
@@ -158,7 +157,6 @@ export const MessagesContextProvider = (props: {
   );
 
   const getMessages: ChatMessageContextType["getMessages"] = useCallback(() => {
-    console.log("get messages", messages);
     return messages.flatMap((message) => {
       const user = getProfileOfMessage(message);
       if (!user) {

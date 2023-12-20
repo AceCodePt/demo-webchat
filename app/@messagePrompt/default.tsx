@@ -29,18 +29,18 @@ export default function MessagePrompt() {
     <>
       <form
         onSubmit={formSubmit}
-        className="z-20 w-full max-w-lg group bottom-24 fixed-centered sm:bottom-6 sm:w-1/2"
+        className="group bottom-24 z-20 w-full max-w-lg fixed-centered sm:bottom-6 sm:w-1/2"
       >
         <label htmlFor="chat" className="sr-only">
           Your message
         </label>
-        <div className="flex items-center px-3 py-2 rounded-lg bg-gray-50">
+        <div className="flex items-center rounded-lg bg-gray-50 px-3 py-2">
           <button
             type="button"
-            className="inline-flex justify-center p-2 text-gray-500 rounded-lg cursor-pointer hover:bg-gray-100 hover:text-gray-900"
+            className="inline-flex cursor-pointer justify-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             <svg
-              className="w-5 h-5"
+              className="h-5 w-5"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -69,10 +69,10 @@ export default function MessagePrompt() {
           </button>
           <button
             type="button"
-            className="p-2 text-gray-500 rounded-lg cursor-pointer hover:bg-gray-100 hover:text-gray-900"
+            className="cursor-pointer rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             <svg
-              className="w-5 h-5"
+              className="h-5 w-5"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -98,11 +98,11 @@ export default function MessagePrompt() {
           />
           <button
             type="submit"
-            className="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100"
+            className="inline-flex cursor-pointer justify-center rounded-full p-2 text-blue-600 hover:bg-blue-100"
             disabled={disabled}
           >
             <svg
-              className="w-5 h-5 rotate-90"
+              className="h-5 w-5 rotate-90"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="currentColor"
