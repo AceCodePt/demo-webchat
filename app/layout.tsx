@@ -47,6 +47,7 @@ export default async function RootLayout({
         }
         hx-ext="my-ext"
       >
+        hii
         {user.data.user ? (
           <MessagesContextProvider
             users={users.data}
