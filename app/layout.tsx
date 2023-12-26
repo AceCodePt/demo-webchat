@@ -54,6 +54,7 @@ export default async function RootLayout({
             userId={user.data.user.id}
           >
             <>
+              hii
               {messagePrompt}
               {children}
             </>
